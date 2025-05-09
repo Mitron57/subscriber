@@ -1,4 +1,6 @@
 proto: 
 	protoc --go_out=. --go-grpc_out=. api/scheme.proto
-all:
+docker:
+	docker build -t subscriber .
+server:
 	go build ./cmd/subscriber
