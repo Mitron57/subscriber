@@ -34,8 +34,7 @@ func NewServer(config *config.Config, logger *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) gracefulStop() error {
-	s.logger.Info("Shutting down server")
+func (s *Server) GracefulStop() error {
 	s.server.GracefulStop()
 	return s.bus.Close(context.Background())
 }
@@ -58,7 +57,8 @@ func (s *Server) Init() {
 		signalChan := make(chan os.Signal)
 		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 		<-signalChan
-		err := s.gracefulStop()
+		s.logger.Info("Shutting down server")
+		err := s.GracefulStop()
 
 		if err != nil {
 			s.logger.Fatal("Could not gracefully shutdown server", zap.Error(err))
