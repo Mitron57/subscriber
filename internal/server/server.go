@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -68,7 +69,7 @@ func (s *Server) Init() {
 
 func (s *Server) Start() error {
 	if s.server == nil {
-		return fmt.Errorf("server is not initialized")
+		return errors.New("server is not initialized")
 	}
 
 	s.logger.Info("Starting server")
