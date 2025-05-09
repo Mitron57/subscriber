@@ -62,7 +62,7 @@ func (s *Server) Init() {
 		if err != nil {
 			s.logger.Fatal("Could not gracefully shutdown server", zap.Error(err))
 		}
-		s.logger.Info("Server shut down, goodbye!")
+		s.logger.Info("Server has been shut down, goodbye!")
 	}()
 }
 

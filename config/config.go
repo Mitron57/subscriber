@@ -1,24 +1,24 @@
 package config
 
 import (
+	"errors"
 	"os"
-
-	"github.com/goccy/go-yaml"
 )
 
 type Config struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Host string
+	Port string
 }
 
-func NewConfig(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
+func NewConfig() (*Config, error) {
 	var config Config
-	if err = yaml.Unmarshal(data, &config); err != nil {
-		return nil, err
+	config.Host = os.Getenv("SUBSCRIBER_HOST")
+	if config.Host == "" {
+		return nil, errors.New("HOST environment variable not set")
+	}
+	config.Port = os.Getenv("SUBSCRIBER_PORT")
+	if config.Port == "" {
+		return nil, errors.New("PORT environment variable not set")
 	}
 	return &config, nil
 }

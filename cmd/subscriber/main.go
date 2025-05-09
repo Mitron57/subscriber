@@ -1,8 +1,7 @@
 package main
 
 import (
-	"flag"
-
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
 	"subscriber/config"
@@ -10,12 +9,12 @@ import (
 )
 
 func main() {
-	configPath := flag.String("c", "./config/config.yaml", "config path")
-	flag.Parse()
-
-	cfg, err := config.NewConfig(*configPath)
-
 	logger := zap.Must(zap.NewProduction())
+	if err := godotenv.Load(); err != nil {
+		logger.Warn("Error loading .env file")
+	}
+
+	cfg, err := config.NewConfig()
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
