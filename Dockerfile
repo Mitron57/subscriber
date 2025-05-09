@@ -14,6 +14,8 @@ RUN make server
 
 FROM ubuntu:latest
 
-COPY --from=builder /subscriber/subscriber /usr/bin
+WORKDIR /subscriber
 
-CMD ["subscriber"]
+COPY --from=builder /subscriber/build/subscriber /subscriber
+
+CMD ["./subscriber"]

@@ -3,4 +3,4 @@ proto:
 docker:
 	docker build -t subscriber .
 server:
-	go build ./cmd/subscriber
+	go build -o ./build/ ./cmd/subscriber
