@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
 	"sync/atomic"
 
 	"go.uber.org/zap"
@@ -31,11 +30,9 @@ func (i *Interceptor) LoggingUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		id := ctx.Value("request-id").(uint64)
 		i.logger.Info("New RPC request", zap.Uint64("request-id", id), zap.String("method", info.FullMethod))
+
 		result, err := handler(ctx, req)
-		if err != nil && !errors.Is(err, context.Canceled) {
-			i.logger.Error("Error occurred", zap.Error(err), zap.String("method", info.FullMethod))
-			return result, err
-		}
+
 		statusCode := status.Code(err).String()
 		i.logger.Info(
 			"Request handled",
@@ -56,10 +53,12 @@ func (i *Interceptor) RequestIdStreamInterceptor() grpc.StreamServerInterceptor 
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		id := i.requestId.Add(1)
 		ctx := context.WithValue(ss.Context(), "request-id", id)
+
 		wrapped := Streamer{
 			ServerStream: ss,
 			ctx:          ctx,
 		}
+
 		return handler(srv, &wrapped)
 	}
 }
@@ -68,13 +67,12 @@ func (i *Interceptor) LoggingStreamInterceptor() grpc.StreamServerInterceptor {
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := ss.(*Streamer).ctx
 		id := ctx.Value("request-id").(uint64)
+
 		i.logger.Info("New Stream-RPC request", zap.Uint64("request-id", id), zap.String("method", info.FullMethod))
+
 		err := handler(srv, ss)
-		if err != nil && !errors.Is(err, context.Canceled) {
-			i.logger.Error("Error occurred", zap.Error(err), zap.String("method", info.FullMethod))
-			return err
-		}
 		statusCode := status.Code(err).String()
+
 		i.logger.Info(
 			"Request handled",
 			zap.Uint64("request-id", id),
