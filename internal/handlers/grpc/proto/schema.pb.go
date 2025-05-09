@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.5
 // 	protoc        v5.29.3
-// source: api/scheme.proto
+// source: api/schema.proto
 
 package proto
 
@@ -31,7 +31,7 @@ type SubscribeRequest struct {
 
 func (x *SubscribeRequest) Reset() {
 	*x = SubscribeRequest{}
-	mi := &file_api_scheme_proto_msgTypes[0]
+	mi := &file_api_schema_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *SubscribeRequest) String() string {
 func (*SubscribeRequest) ProtoMessage() {}
 
 func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_scheme_proto_msgTypes[0]
+	mi := &file_api_schema_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeRequest) Descriptor() ([]byte, []int) {
-	return file_api_scheme_proto_rawDescGZIP(), []int{0}
+	return file_api_schema_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SubscribeRequest) GetKey() string {
@@ -76,7 +76,7 @@ type PublishRequest struct {
 
 func (x *PublishRequest) Reset() {
 	*x = PublishRequest{}
-	mi := &file_api_scheme_proto_msgTypes[1]
+	mi := &file_api_schema_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -88,7 +88,7 @@ func (x *PublishRequest) String() string {
 func (*PublishRequest) ProtoMessage() {}
 
 func (x *PublishRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_scheme_proto_msgTypes[1]
+	mi := &file_api_schema_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -101,7 +101,7 @@ func (x *PublishRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishRequest.ProtoReflect.Descriptor instead.
 func (*PublishRequest) Descriptor() ([]byte, []int) {
-	return file_api_scheme_proto_rawDescGZIP(), []int{1}
+	return file_api_schema_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PublishRequest) GetKey() string {
@@ -127,7 +127,7 @@ type Event struct {
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_api_scheme_proto_msgTypes[2]
+	mi := &file_api_schema_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -139,7 +139,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_api_scheme_proto_msgTypes[2]
+	mi := &file_api_schema_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,7 +152,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_api_scheme_proto_rawDescGZIP(), []int{2}
+	return file_api_schema_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Event) GetData() string {
@@ -162,10 +162,10 @@ func (x *Event) GetData() string {
 	return ""
 }
 
-var File_api_scheme_proto protoreflect.FileDescriptor
+var File_api_schema_proto protoreflect.FileDescriptor
 
-var file_api_scheme_proto_rawDesc = string([]byte{
-	0x0a, 0x10, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+var file_api_schema_proto_rawDesc = string([]byte{
+	0x0a, 0x10, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x12, 0x0a, 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x72, 0x1a, 0x1b,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f,
 	0x65, 0x6d, 0x70, 0x74, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x24, 0x0a, 0x10, 0x53,
@@ -191,25 +191,25 @@ var file_api_scheme_proto_rawDesc = string([]byte{
 })
 
 var (
-	file_api_scheme_proto_rawDescOnce sync.Once
-	file_api_scheme_proto_rawDescData []byte
+	file_api_schema_proto_rawDescOnce sync.Once
+	file_api_schema_proto_rawDescData []byte
 )
 
-func file_api_scheme_proto_rawDescGZIP() []byte {
-	file_api_scheme_proto_rawDescOnce.Do(func() {
-		file_api_scheme_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_scheme_proto_rawDesc), len(file_api_scheme_proto_rawDesc)))
+func file_api_schema_proto_rawDescGZIP() []byte {
+	file_api_schema_proto_rawDescOnce.Do(func() {
+		file_api_schema_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_schema_proto_rawDesc), len(file_api_schema_proto_rawDesc)))
 	})
-	return file_api_scheme_proto_rawDescData
+	return file_api_schema_proto_rawDescData
 }
 
-var file_api_scheme_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_api_scheme_proto_goTypes = []any{
+var file_api_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_api_schema_proto_goTypes = []any{
 	(*SubscribeRequest)(nil), // 0: subscriber.SubscribeRequest
 	(*PublishRequest)(nil),   // 1: subscriber.PublishRequest
 	(*Event)(nil),            // 2: subscriber.Event
 	(*emptypb.Empty)(nil),    // 3: google.protobuf.Empty
 }
-var file_api_scheme_proto_depIdxs = []int32{
+var file_api_schema_proto_depIdxs = []int32{
 	0, // 0: subscriber.PubSub.Subscribe:input_type -> subscriber.SubscribeRequest
 	1, // 1: subscriber.PubSub.Publish:input_type -> subscriber.PublishRequest
 	2, // 2: subscriber.PubSub.Subscribe:output_type -> subscriber.Event
@@ -221,26 +221,26 @@ var file_api_scheme_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_api_scheme_proto_init() }
-func file_api_scheme_proto_init() {
-	if File_api_scheme_proto != nil {
+func init() { file_api_schema_proto_init() }
+func file_api_schema_proto_init() {
+	if File_api_schema_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_scheme_proto_rawDesc), len(file_api_scheme_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_schema_proto_rawDesc), len(file_api_schema_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_api_scheme_proto_goTypes,
-		DependencyIndexes: file_api_scheme_proto_depIdxs,
-		MessageInfos:      file_api_scheme_proto_msgTypes,
+		GoTypes:           file_api_schema_proto_goTypes,
+		DependencyIndexes: file_api_schema_proto_depIdxs,
+		MessageInfos:      file_api_schema_proto_msgTypes,
 	}.Build()
-	File_api_scheme_proto = out.File
-	file_api_scheme_proto_goTypes = nil
-	file_api_scheme_proto_depIdxs = nil
+	File_api_schema_proto = out.File
+	file_api_schema_proto_goTypes = nil
+	file_api_schema_proto_depIdxs = nil
 }

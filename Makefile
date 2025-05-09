@@ -1,5 +1,5 @@
 proto: 
-	protoc --go_out=. --go-grpc_out=. api/scheme.proto
+	protoc --go_out=. --go-grpc_out=. api/schema.proto
 docker:
 	docker build -t subscriber .
 server:
