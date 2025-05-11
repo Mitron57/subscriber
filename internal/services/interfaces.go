@@ -1,5 +1,7 @@
 package services
 
+//go:generate mockery --name=PubSub --output=./mocks --with-expecter
+
 import (
 	"context"
 
