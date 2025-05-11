@@ -5,5 +5,7 @@ docker:
 server:
 	go build -o ./build/ ./cmd/subscriber
 
-test-integration:
-	go test -v -tags=integration ./tests/integration/...
+.PHONY: test
+
+test:
+	go test ./...

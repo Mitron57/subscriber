@@ -1,6 +1,4 @@
-//go:build integration
-
-package integration
+package grpc
 
 import (
 	"context"
@@ -14,7 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"subscriber/internal/domain/dto"
-	"subscriber/internal/handlers/grpc"
 	grpcMocks "subscriber/internal/handlers/grpc/mocks"
 	"subscriber/internal/handlers/grpc/proto"
 	serviceMocks "subscriber/internal/services/mocks"
@@ -125,7 +122,7 @@ func TestPubSub_Subscribe(t *testing.T) {
 			}
 
 			logger := zap.NewNop()
-			handler := grpc.NewPubSubServer(mockPubSub, logger)
+			handler := NewPubSubServer(mockPubSub, logger)
 
 			err := handler.Subscribe(tt.request, mockStream)
 			if tt.expectedError != "" {
@@ -184,7 +181,7 @@ func TestPubSub_Publish(t *testing.T) {
 			}
 
 			logger := zap.NewNop()
-			handler := grpc.NewPubSubServer(mockPubSub, logger)
+			handler := NewPubSubServer(mockPubSub, logger)
 
 			_, err := handler.Publish(context.Background(), tt.request)
 			if tt.expectedError != "" {
