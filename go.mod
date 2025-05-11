@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/mitron57/subpub v0.1.6
+	github.com/mitron57/subpub v0.1.7
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
