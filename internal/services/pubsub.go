@@ -6,14 +6,13 @@ import (
 	"github.com/mitron57/subpub"
 
 	"subscriber/internal/domain/dto"
-	"subscriber/internal/domain/interfaces"
 )
 
 type bus struct {
 	inner subpub.SubPub
 }
 
-func NewPubSub(sp subpub.SubPub) interfaces.PubSub {
+func NewPubSub(sp subpub.SubPub) PubSub {
 	return bus{
 		inner: sp,
 	}
