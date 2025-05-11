@@ -12,17 +12,17 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"subscriber/internal/domain/dto"
-	"subscriber/internal/domain/interfaces"
 	"subscriber/internal/handlers/grpc/proto"
+	"subscriber/internal/services"
 )
 
 type Handler struct {
 	proto.UnimplementedPubSubServer
-	bus    interfaces.PubSub
+	bus    services.PubSub
 	logger *zap.Logger
 }
 
-func NewPubSubServer(bus interfaces.PubSub, logger *zap.Logger) proto.PubSubServer {
+func NewPubSubServer(bus services.PubSub, logger *zap.Logger) proto.PubSubServer {
 	return &Handler{
 		bus:    bus,
 		logger: logger,
