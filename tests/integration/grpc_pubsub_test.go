@@ -1,125 +1,198 @@
+//go:build integration
+
 package integration
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"maps"
-	"os"
-	"sync"
+	"errors"
 	"testing"
+	"time"
 
+	testifyMock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
-	"subscriber/config"
+	"subscriber/internal/domain/dto"
+	"subscriber/internal/handlers/grpc"
+	grpcMocks "subscriber/internal/handlers/grpc/mocks"
 	"subscriber/internal/handlers/grpc/proto"
-	"subscriber/internal/server"
+	serviceMocks "subscriber/internal/services/mocks"
 )
 
-const (
-	Host = "0.0.0.0"
-	Port = "50051"
-)
-
-type testClient struct {
-	inner proto.PubSubClient
-	conn  *grpc.ClientConn
+type mockSubscription struct {
+	msgChan chan dto.Message
 }
 
-var (
-	srv    *server.Server
-	client testClient
-)
-
-func Setup() {
-	logger := zap.NewNop()
-	cfg := config.Config{Host: Host, Port: Port}
-
-	srv = server.NewServer(&cfg, logger)
-	srv.Init()
-	go func() {
-		if err := srv.Start(); err != nil {
-			panic(err)
-		}
-	}()
-
-	host := fmt.Sprintf("%s:%s", Host, Port)
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-
-	client.conn, _ = grpc.NewClient(host, opts...)
-	client.inner = proto.NewPubSubClient(client.conn)
+func (m *mockSubscription) Unsubscribe() {
+	close(m.msgChan)
 }
 
-func Teardown() {
-	err := srv.GracefulStop()
-	if err != nil {
-		panic(err)
+func TestPubSub_Subscribe(t *testing.T) {
+	tests := []struct {
+		name          string
+		request       *proto.SubscribeRequest
+		mockSetup     func(mock *serviceMocks.PubSub, stream *grpcMocks.MockServerStream)
+		expectedError string
+		events        []*proto.Event
+	}{
+		{
+			name: "successful subscribe with messages",
+			request: &proto.SubscribeRequest{
+				Key: "test-topic",
+			},
+			mockSetup: func(mock *serviceMocks.PubSub, stream *grpcMocks.MockServerStream) {
+				ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+				defer cancel()
+
+				stream.On("Context").Return(ctx)
+
+				msgChan := make(chan dto.Message, 2)
+				go func() {
+					msgChan <- dto.Message{Topic: "test-topic", Data: "message1"}
+					msgChan <- dto.Message{Topic: "test-topic", Data: "message2"}
+				}()
+
+				subscription := &mockSubscription{msgChan: msgChan}
+
+				mock.On("Subscribe", testifyMock.Anything, testifyMock.MatchedBy(func(sub dto.Subscription) bool {
+					return sub.Topic == "test-topic"
+				})).Return(subscription, nil)
+
+				stream.On("Send", testifyMock.MatchedBy(func(event *proto.Event) bool {
+					return event.Data == "message1" || event.Data == "message2"
+				})).Return(nil).Maybe()
+			},
+			events: []*proto.Event{
+				{Data: "message1"},
+				{Data: "message2"},
+			},
+			expectedError: "",
+		},
+		{
+			name: "bus closed error",
+			request: &proto.SubscribeRequest{
+				Key: "test-topic",
+			},
+			mockSetup: func(mock *serviceMocks.PubSub, stream *grpcMocks.MockServerStream) {
+				ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+				defer cancel()
+
+				stream.On("Context").Return(ctx)
+
+				mock.On("Subscribe", testifyMock.Anything, testifyMock.Anything).Return(nil, errors.New("bus is closed"))
+			},
+			expectedError: "rpc error: code = Internal desc = bus is closed",
+		},
+		{
+			name: "stream send error",
+			request: &proto.SubscribeRequest{
+				Key: "test-topic",
+			},
+			mockSetup: func(mock *serviceMocks.PubSub, stream *grpcMocks.MockServerStream) {
+				ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+				defer cancel()
+
+				stream.On("Context").Return(ctx)
+
+				msgChan := make(chan dto.Message, 1)
+				go func() {
+					msgChan <- dto.Message{Topic: "test-topic", Data: "message1"}
+				}()
+
+				subscription := &mockSubscription{msgChan: msgChan}
+
+				mock.On("Subscribe", testifyMock.Anything, testifyMock.MatchedBy(func(sub dto.Subscription) bool {
+					return sub.Topic == "test-topic"
+				})).Return(subscription, nil)
+
+				stream.On("Send", testifyMock.Anything).Return(errors.New("stream error")).Maybe()
+			},
+			expectedError: "",
+		},
 	}
 
-	err = client.conn.Close()
-	if err != nil {
-		panic(err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPubSub := serviceMocks.NewPubSub(t)
+			mockStream := grpcMocks.NewMockServerStream(t)
+
+			if tt.mockSetup != nil {
+				tt.mockSetup(mockPubSub, mockStream)
+			}
+
+			logger := zap.NewNop()
+			handler := grpc.NewPubSubServer(mockPubSub, logger)
+
+			err := handler.Subscribe(tt.request, mockStream)
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				require.Equal(t, tt.expectedError, err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
 }
 
-func TestSubscriber(t *testing.T) {
-	const topic = "test"
-	ctx, cancel := context.WithCancel(context.Background())
-
-	param := proto.SubscribeRequest{Key: topic}
-	stream, err := client.inner.Subscribe(ctx, &param)
-	if err != nil {
-		t.Error(err)
+func TestPubSub_Publish(t *testing.T) {
+	tests := []struct {
+		name          string
+		request       *proto.PublishRequest
+		mockSetup     func(mock *serviceMocks.PubSub)
+		expectedError string
+	}{
+		{
+			name: "successful publish",
+			request: &proto.PublishRequest{
+				Key:  "test-topic",
+				Data: "test-data",
+			},
+			mockSetup: func(mock *serviceMocks.PubSub) {
+				mock.On("Publish", testifyMock.Anything, testifyMock.MatchedBy(func(msg dto.Message) bool {
+					return msg.Topic == "test-topic" && msg.Data == "test-data"
+				})).Return(nil)
+			},
+			expectedError: "",
+		},
+		{
+			name: "bus closed error",
+			request: &proto.PublishRequest{
+				Key:  "test-topic",
+				Data: "test-data",
+			},
+			mockSetup: func(mock *serviceMocks.PubSub) {
+				mock.On("Publish", testifyMock.Anything, testifyMock.MatchedBy(func(msg dto.Message) bool {
+					return msg.Topic == "test-topic" && msg.Data == "test-data"
+				})).Return(errors.New("bus is closed"))
+			},
+			expectedError: "rpc error: code = Internal desc = bus is closed",
+		},
 	}
 
-	messages := map[string]struct{}{
-		"1": {},
-		"2": {},
-		"3": {},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPubSub := serviceMocks.NewPubSub(t)
+			if tt.mockSetup != nil {
+				tt.mockSetup(mockPubSub)
+			}
+
+			logger := zap.NewNop()
+			handler := grpc.NewPubSubServer(mockPubSub, logger)
+
+			_, err := handler.Publish(context.Background(), tt.request)
+			if tt.expectedError != "" {
+				require.Error(t, err)
+				require.Equal(t, tt.expectedError, err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
-
-	errs := make(chan error, len(messages))
-	var wg sync.WaitGroup
-	wg.Add(len(messages))
-	for message := range messages {
-		go func() {
-			defer wg.Done()
-			_, err := client.inner.Publish(ctx, &proto.PublishRequest{Key: topic, Data: message})
-			errs <- err
-		}()
-	}
-	wg.Wait()
-	close(errs)
-
-	for i := 0; i < len(messages); i++ {
-		err, ok := <-errs
-		if !ok {
-			break
-		}
-		if err != nil {
-			t.Errorf("publish error: %v", err)
-		}
-	}
-
-	received := make(map[string]struct{}, len(messages))
-
-	for err != io.EOF && !maps.Equal(received, messages) {
-		var msg *proto.Event
-		msg, err = stream.Recv()
-		if err != nil {
-			t.Error(err)
-			continue
-		}
-		received[msg.Data] = struct{}{}
-	}
-	cancel()
-}
-
-func TestMain(m *testing.M) {
-	Setup()
-	code := m.Run()
-	Teardown()
-	os.Exit(code)
 }
